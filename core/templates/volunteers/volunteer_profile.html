@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background:#f8f9fa; padding:40px 20px;">
+    <div style="max-width:560px; margin:0 auto;">
+        <div style="text-align:center; margin-bottom:32px;">
+            <h1 style="color:#1a73e8; font-size:28px;">👤 My Profile</h1>
+            <p style="color:#5f6368; margin-top:8px;">{{ user.username }}</p>
+        </div>
+        <div style="background:white; padding:40px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+            <form method="POST">
+                {% csrf_token %}
+                <div style="background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <p style="font-weight:500; color:#3c4043;">Availability Status</p>
+                        <p style="font-size:13px; color:#5f6368;">Toggle when you are free</p>
+                    </div>
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" name="availability"
+                            {% if profile.availability %}checked{% endif %}
+                            style="width:20px; height:20px; accent-color:#1a73e8;">
+                        <span style="font-size:14px;">Available</span>
+                    </label>
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; font-weight:500; margin-bottom:6px; color:#3c4043;">Your Location</label>
+                    <input type="text" name="location" value="{{ profile.location }}"
+                        style="width:100%; padding:12px; border:1px solid #dadce0; border-radius:4px; font-size:14px;"
+                        placeholder="Your village / city">
+                </div>
+                <div style="margin-bottom:24px;">
+                    <label style="display:block; font-weight:500; margin-bottom:10px; color:#3c4043;">Your Skills</label>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                        {% for value, label in skill_choices %}
+                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; color:#3c4043;">
+                            <input type="checkbox" name="skills" value="{{ value }}"
+                                {% if value in selected_skills %}checked{% endif %}
+                                style="width:16px; height:16px; accent-color:#1a73e8;">
+                            {{ label }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div style="background:#e8f0fe; padding:16px; border-radius:8px; margin-bottom:24px;">
+                    <p style="color:#1a73e8; font-size:14px; font-weight:500;">🏆 Tasks Completed: {{ profile.tasks_completed }}</p>
+                </div>
+                <button type="submit" class="btn-primary" style="font-size:15px; padding:13px;">
+                    💾 Save Profile
+                </button>
+                <a href="/dashboard/volunteer/" style="display:block; text-align:center; margin-top:16px; color:#5f6368; font-size:14px; text-decoration:none;">← Back</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

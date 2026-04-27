@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background: var(--background);">
+
+    <!-- Nav -->
+    <div style="background: var(--primary-blue); padding:16px 32px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; box-shadow: var(--shadow);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">📊</span>
+            <h1 style="color:white; font-size:20px; font-weight:600; letter-spacing: -0.5px;">Impact Analytics</h1>
+        </div>
+        <div style="display:flex; gap:12px; align-items:center;">
+            <span style="color:rgba(255,255,255,0.9); font-size:14px; font-weight: 500;">{{ ngo.name }}</span>
+            <a href="/dashboard/manager/" class="btn-google" style="padding: 8px 16px; border: none; font-size: 13px; color: var(--primary-blue); background: white;">← Dashboard</a>
+            <a href="/logout/" style="color:rgba(255,255,255,0.8); font-size:13px; text-decoration:none; margin-left: 12px;">Logout</a>
+        </div>
+    </div>
+
+    <div style="padding: 32px; max-width: 1400px; margin: 0 auto;">
+
+        <!-- AI Badge -->
+        <div style="background: #e8f0fe; padding: 12px 24px; border-radius: 30px; margin-bottom: 32px; display: inline-flex; align-items: center; gap: 12px; border: 1px solid rgba(26,115,232,0.1);">
+            <span style="font-size: 18px;">✨</span>
+            <p style="color: var(--primary-blue); font-size: 14px; font-weight: 500;">Intelligence Layer: Real-time Social Impact Tracking</p>
+        </div>
+
+        <!-- Summary Cards Row 1 -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:24px; margin-bottom: 24px;">
+            <div class="card" style="border-top: 4px solid var(--primary-blue); text-align:center;">
+                <p style="font-size:40px; font-weight:700; color:var(--primary-blue);">{{ total_needs }}</p>
+                <p style="color:var(--text-secondary); font-size:13px; font-weight: 600; margin-top:4px; text-transform: uppercase;">Total Needs</p>
+            </div>
+            <div class="card" style="border-top: 4px solid var(--primary-green); text-align:center;">
+                <p style="font-size:40px; font-weight:700; color:var(--primary-green);">{{ resolved_needs }}</p>
+                <p style="color:var(--text-secondary); font-size:13px; font-weight: 600; margin-top:4px; text-transform: uppercase;">✅ Resolved</p>
+            </div>
+            <div class="card" style="border-top: 4px solid var(--primary-yellow); text-align:center;">
+                <p style="font-size:40px; font-weight:700; color:var(--primary-yellow);">{{ pending_needs }}</p>
+                <p style="color:var(--text-secondary); font-size:13px; font-weight: 600; margin-top:4px; text-transform: uppercase;">⏳ Pending</p>
+            </div>
+            <div class="card" style="border-top: 4px solid var(--primary-red); text-align:center;">
+                <p style="font-size:40px; font-weight:700; color:var(--primary-red);">{{ high_urgency }}</p>
+                <p style="color:var(--text-secondary); font-size:13px; font-weight: 600; margin-top:4px; text-transform: uppercase;">🔴 High Urgency</p>
+            </div>
+        </div>
+
+        <!-- Summary Cards Row 2 -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:24px; margin-bottom: 40px;">
+            <div class="card" style="border-top: 4px solid #46bdc6; text-align:center;">
+                <p style="font-size:40px; font-weight:700; color:#46bdc6;">{{ total_volunteers }}</p>
+                <p style="color:var(--text-secondary); font-size:13px; font-weight: 600; margin-top:4px; text-transform: uppercase;">👥 Total Volunteers</p>
+            </div>
+            <div class="card" style="border-top: 4px solid var(--primary-green); text-align:center;">
+                <p style="font-size:40px; font-weight:700; color:var(--primary-green);">{{ available_volunteers }}</p>
+                <p style="color:var(--text-secondary); font-size:13px; font-weight: 600; margin-top:4px; text-transform: uppercase;">✅ Available Now</p>
+            </div>
+            <div class="card" style="border-top: 4px solid #7c4dff; text-align:center;">
+                <p style="font-size:40px; font-weight:700; color:#7c4dff;">{{ total_assignments }}</p>
+                <p style="color:var(--text-secondary); font-size:13px; font-weight: 600; margin-top:4px; text-transform: uppercase;">🤝 Assignments</p>
+            </div>
+            <div class="card" style="border-top: 4px solid #ff6d00; text-align:center;">
+                <p style="font-size:40px; font-weight:700; color:#ff6d00;">{{ digitized_docs }}</p>
+                <p style="color:var(--text-secondary); font-size:13px; font-weight: 600; margin-top:4px; text-transform: uppercase;">📄 Digitized Docs</p>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap:32px; margin-bottom: 40px;">
+
+            <!-- Category Chart -->
+            <div class="card" style="padding: 24px;">
+                <h3 style="color:var(--text-primary); font-size:16px; font-weight:600; margin-bottom:20px;">📋 Needs by Category</h3>
+                <div id="categoryChart" style="height:280px;"></div>
+            </div>
+
+            <!-- Urgency Chart -->
+            <div class="card" style="padding: 24px;">
+                <h3 style="color:var(--text-primary); font-size:16px; font-weight:600; margin-bottom:20px;">🚨 Urgency Breakdown</h3>
+                <div id="urgencyChart" style="height:280px;"></div>
+            </div>
+
+            <!-- Status Chart -->
+            <div class="card" style="padding: 24px;">
+                <h3 style="color:var(--text-primary); font-size:16px; font-weight:600; margin-bottom:20px;">📊 Status Overview</h3>
+                <div id="statusChart" style="height:280px;"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Row -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap:32px;">
+
+            <!-- Volunteer Leaderboard -->
+            <div class="card" style="padding: 32px;">
+                <h3 style="color:var(--text-primary); font-size:18px; font-weight:600; margin-bottom:24px;">🏆 Top Contributors</h3>
+                {% for vol in top_volunteers %}
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid #f1f3f4; transition: transform 0.2s;" onmouseover="this.style.transform='translateX(8px)'" onmouseout="this.style.transform='none'">
+                    <div style="display:flex; align-items:center; gap:16px;">
+                        <span style="font-size:24px; width: 40px; height: 40px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            {% if forloop.first %}🥇
+                            {% elif forloop.counter == 2 %}🥈
+                            {% elif forloop.counter == 3 %}🥉
+                            {% else %}🏅{% endif %}
+                        </span>
+                        <div>
+                            <p style="font-weight:600; color:var(--text-primary); font-size:15px;">{{ vol.user.username }}</p>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <p style="font-size:12px; color:var(--text-secondary);">{{ vol.location }}</p>
+                                {% if vol.is_verified %}
+                                <span style="font-size: 10px; color: var(--primary-blue); background: #e8f0fe; padding: 1px 6px; border-radius: 4px;">VERIFIED</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <p style="font-weight:700; color:var(--primary-blue); font-size:20px;">{{ vol.tasks_completed }}</p>
+                        <p style="font-size:11px; color:var(--text-secondary); text-transform: uppercase;">Completed</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color:var(--text-secondary); text-align:center; padding:40px;">No contribution data yet.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Recently Resolved -->
+            <div class="card" style="padding: 32px;">
+                <h3 style="color:var(--text-primary); font-size:18px; font-weight:600; margin-bottom:24px;">✅ Solution History</h3>
+                {% for need in recent_resolved %}
+                <div style="padding:16px 0; border-bottom:1px solid #f1f3f4; display: flex; gap: 16px;">
+                    <span style="font-size: 20px;">🏘️</span>
+                    <div>
+                        <p style="font-weight:600; color:var(--text-primary); font-size:15px;">{{ need.title }}</p>
+                        <div style="display: flex; gap: 12px; margin-top: 4px;">
+                            <p style="font-size:12px; color:var(--text-secondary);">📍 {{ need.location_name }}</p>
+                            <p style="font-size:12px; color:var(--primary-green); font-weight: 600;">{{ need.get_category_display }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color:var(--text-secondary); text-align:center; padding:40px;">No resolved needs documented.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Resolution Rate Section -->
+        <div class="card" style="margin-top: 40px; padding: 32px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="color:var(--text-primary); font-size:18px; font-weight:600;">📈 Community Success Rate</h3>
+                <span id="resolutionRateVal" style="font-size: 32px; font-weight: 700; color: var(--primary-green);">0%</span>
+            </div>
+            <div style="background:#f8f9fa; border-radius:12px; overflow:hidden; height:20px;">
+                <div id="resolutionBar" style="background: linear-gradient(90deg, var(--primary-green) 0%, #81c995 100%); height:100%; width:0%; transition:width 0.8s ease-out;"></div>
+            </div>
+            <p style="font-size:14px; color:var(--text-secondary); margin-top:16px; font-weight: 500;">
+                {{ resolved_needs }} out of {{ total_needs }} community needs successfully resolved through coordinate action.
+            </p>
+        </div>
+
+        <!-- Intelligence Card -->
+        <div style="background: linear-gradient(135deg, #1a73e8 0%, #174ea6 100%); padding: 32px; border-radius: 24px; margin-top: 40px; color: white; display: grid; grid-template-columns: 1.5fr 1fr; gap: 32px; box-shadow: 0 20px 40px rgba(26,115,232,0.2);">
+            <div>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <div style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 50%;">✨</div>
+                    <h3 style="font-size: 20px; font-weight: 700;">AI Social Impact Forecast</h3>
+                </div>
+                <p style="font-size: 18px; line-height: 1.6; opacity: 0.95; margin-bottom: 24px;">
+                    "{{ ai_insights.trend_analysis }}"
+                </p>
+                <div style="display: flex; gap: 16px;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2);">
+                        <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Predicted Risk (Next 14d)</p>
+                        <p style="font-weight: 600; font-size: 14px;">{{ ai_insights.predicted_risk }}</p>
+                    </div>
+                </div>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 24px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);">
+                <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">Recommended Proactive Strategy</p>
+                <p style="font-size: 15px; font-weight: 500; line-height: 1.5; margin-bottom: 16px;">{{ ai_insights.proactive_strategy }}</p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden;">
+                        <div style="width: calc({{ ai_insights.urgency_score }} * 10%); height: 100%; background: #fbbc04;"></div>
+                    </div>
+                    <span style="font-weight: 700; color: #fbbc04;">{{ ai_insights.urgency_score }}/10 URGENCY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Heatmap Section -->
+        <div class="card" style="margin-top: 40px; padding: 0; overflow: hidden; border: 1px solid #e8eaed;">
+            <div style="padding: 24px 32px; border-bottom: 1px solid #f1f3f4; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="color:var(--text-primary); font-size:18px; font-weight:600;">🏘️ Immediate Impact Hotspots</h3>
+                    <p style="color:var(--text-secondary); font-size:13px; margin-top:2px;">Real-time density map of community needs</p>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <span style="background: #fce8e6; color: #ea4335; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">INTENSE</span>
+                    <span style="background: #e6f4ea; color: #34a853; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">STABLE</span>
+                </div>
+            </div>
+            <div id="impactMap" style="height: 500px; background: #e8eaed;"></div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Google Maps with visualization library -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&libraries=visualization"></script>
+<!-- Google Charts -->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+    let map, heatmap;
+
+    function initMap() {
+        const mapData = JSON.parse('{{ map_data|escapejs }}');
+        
+        // Default center
+        const center = (mapData.length > 0) 
+            ? { lat: mapData[0].lat, lng: mapData[0].lng } 
+            : { lat: 11.025, lng: 77.125 }; 
+
+        map = new google.maps.Map(document.getElementById("impactMap"), {
+            zoom: 14,
+            center: center,
+            mapTypeId: "roadmap",
+            styles: [
+                { "featureType": "all", "elementType": "labels.text.fill", "stylers": [{"color": "#746855"}] },
+                { "featureType": "water", "elementType": "geometry.fill", "stylers": [{"color": "#c9c9c9"}] }
+            ]
+        });
+
+        const points = mapData.map(p => {
+            return {
+                location: new google.maps.LatLng(p.lat, p.lng),
+                weight: p.weight
+            };
+        });
+
+        heatmap = new google.maps.visualization.HeatmapLayer({
+            data: points,
+            map: map,
+            radius: 40,
+            opacity: 0.8
+        });
+    }
+
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback(() => {
+    drawAllCharts();
+    initMap();
+});
+
+const categoryData = JSON.parse('{{ categories|escapejs }}');
+const urgencyData = JSON.parse('{{ urgency_data|escapejs }}');
+const statusData = JSON.parse('{{ status_data|escapejs }}');
+function drawAllCharts() {
+    drawPieChart('categoryChart', categoryData,
+        ['Category', 'Count'],
+        ['#1a73e8','#ea4335','#fbbc04','#34a853','#ff6d00','#46bdc6','#7c4dff']
+    );
+    drawPieChart('urgencyChart', urgencyData,
+        ['Urgency', 'Count'],
+        ['#ea4335','#fbbc04','#34a853']
+    );
+    drawBarChart('statusChart', statusData);
+}
+
+function drawPieChart(elementId, data, columns, colors) {
+    const chartData = new google.visualization.DataTable();
+    chartData.addColumn('string', columns[0]);
+    chartData.addColumn('number', columns[1]);
+    Object.entries(data).forEach(([k, v]) => chartData.addRow([k, v]));
+
+    if (Object.keys(data).every(k => data[k] === 0)) {
+        chartData.addRow(['No data', 1]);
+    }
+
+    new google.visualization.PieChart(
+        document.getElementById(elementId)
+    ).draw(chartData, {
+        pieHole: 0.4,
+        colors: colors,
+        legend: { position: 'bottom', textStyle: { fontSize: 11 } },
+        chartArea: { width: '90%', height: '70%' },
+    });
+}
+
+function drawBarChart(elementId, data) {
+    const chartData = new google.visualization.DataTable();
+    chartData.addColumn('string', 'Status');
+    chartData.addColumn('number', 'Count');
+    Object.entries(data).forEach(([k, v]) => chartData.addRow([k, v]));
+
+    new google.visualization.BarChart(
+        document.getElementById(elementId)
+    ).draw(chartData, {
+        colors: ['#1a73e8'],
+        legend: { position: 'none' },
+        chartArea: { width: '70%', height: '70%' },
+        hAxis: { minValue: 0 },
+    });
+}
+</script>
+<script>
+const totalNeeds = parseInt("{{ total_needs }}");
+const resolvedNeeds = parseInt("{{ resolved_needs }}");
+if (totalNeeds > 0) {
+    const rate = Math.round((resolvedNeeds / totalNeeds) * 100);
+    document.getElementById('resolutionBar').style.width = rate + '%';
+    document.getElementById('resolutionText').textContent = rate + '%';
+}
+</script>
+{% endblock %}

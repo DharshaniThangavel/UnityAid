@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background:#f8f9fa;">
+
+    <!-- Nav -->
+    <div style="background:#1a73e8; padding:16px 32px; display:flex; justify-content:space-between; align-items:center;">
+        <h1 style="color:white; font-size:20px; font-weight:600;">🙋 Volunteer Directory</h1>
+        <div style="display:flex; gap:12px; align-items:center;">
+            <a href="/dashboard/manager/" style="color:rgba(255,255,255,0.8); text-decoration:none; font-size:13px;">← Dashboard</a>
+            <a href="/volunteers/add/" style="background:white; color:#1a73e8; padding:8px 16px; border-radius:4px; text-decoration:none; font-size:13px; font-weight:500;">+ Add Volunteer</a>
+            <a href="/logout/" style="color:rgba(255,255,255,0.7); font-size:13px; text-decoration:none;">Logout</a>
+        </div>
+    </div>
+
+    <div style="padding:32px;">
+
+        <!-- Summary -->
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;">
+            <div style="background:white; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); border-left:4px solid #1a73e8;">
+                <p style="color:#5f6368; font-size:12px;">Total Volunteers</p>
+                <p style="font-size:28px; font-weight:700; color:#1a73e8;">{{ volunteers.count }}</p>
+            </div>
+            <div style="background:white; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); border-left:4px solid #34a853;">
+                <p style="color:#5f6368; font-size:12px;">✅ Available</p>
+                <p style="font-size:28px; font-weight:700; color:#34a853;">{{ volunteers|length }}</p>
+            </div>
+            <div style="background:white; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); border-left:4px solid #ea4335;">
+                <p style="color:#5f6368; font-size:12px;">Tasks Completed</p>
+                <p style="font-size:28px; font-weight:700; color:#ea4335;">—</p>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div style="background:white; padding:16px 20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:24px;">
+            <form method="GET" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                <select name="skill" style="padding:8px 12px; border:1px solid #dadce0; border-radius:4px; font-size:13px;">
+                    <option value="">All Skills</option>
+                    {% for value, label in skill_choices %}
+                    <option value="{{ value }}" {% if request.GET.skill == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <select name="availability" style="padding:8px 12px; border:1px solid #dadce0; border-radius:4px; font-size:13px;">
+                    <option value="">All Availability</option>
+                    <option value="available" {% if request.GET.availability == 'available' %}selected{% endif %}>✅ Available</option>
+                    <option value="busy" {% if request.GET.availability == 'busy' %}selected{% endif %}>🔴 Busy</option>
+                </select>
+                <button type="submit" style="background:#1a73e8; color:white; border:none; padding:8px 20px; border-radius:4px; cursor:pointer; font-size:13px;">Filter</button>
+                <a href="/volunteers/" style="color:#5f6368; font-size:13px; text-decoration:none;">Clear</a>
+            </form>
+        </div>
+
+        <!-- Volunteer Cards -->
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+            {% for vol in volunteers %}
+            <div style="background:white; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); padding:24px;">
+
+                <!-- Avatar -->
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                    <div style="width:48px; height:48px; border-radius:50%; background:#e8f0fe; display:flex; align-items:center; justify-content:center; font-size:20px;">
+                        👤
+                    </div>
+                    <div>
+                        <p style="font-weight:600; color:#3c4043; font-size:15px;">{{ vol.user.username }}</p>
+                        <p style="font-size:12px; color:#5f6368;">{{ vol.user.email }}</p>
+                    </div>
+                </div>
+
+                <!-- Availability Badge -->
+                {% if vol.availability %}
+                <span style="background:#e6f4ea; color:#34a853; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:500;">✅ Available</span>
+                {% else %}
+                <span style="background:#fce8e6; color:#ea4335; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:500;">🔴 Busy</span>
+                {% endif %}
+
+                <!-- Skills -->
+                <div style="margin-top:12px;">
+                    <p style="font-size:12px; color:#5f6368; margin-bottom:6px;">Skills:</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                        {% for skill in vol.skills.split %}
+                        <span style="background:#e8f0fe; color:#1a73e8; padding:2px 8px; border-radius:10px; font-size:11px;">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Location -->
+                {% if vol.location %}
+                <p style="font-size:12px; color:#5f6368; margin-top:12px;">📍 {{ vol.location }}</p>
+                {% endif %}
+
+                <!-- Tasks -->
+                <p style="font-size:12px; color:#5f6368; margin-top:8px;">✅ Tasks completed: {{ vol.tasks_completed }}</p>
+            </div>
+            {% empty %}
+            <div style="grid-column:span 3; text-align:center; padding:60px; color:#5f6368;">
+                <p style="font-size:48px; margin-bottom:12px;">👥</p>
+                <p style="font-size:16px; margin-bottom:8px;">No volunteers yet</p>
+                <a href="/volunteers/add/" style="color:#1a73e8; text-decoration:none; font-weight:500;">+ Add your first volunteer</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

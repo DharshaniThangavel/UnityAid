@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background:#f8f9fa; padding:32px 20px;">
+    <div style="max-width:600px; margin:0 auto;">
+
+        <a href="/dashboard/volunteer/" style="color:#1a73e8; text-decoration:none; font-size:14px;">← Back</a>
+        <h1 style="color:#3c4043; font-size:24px; margin:12px 0 24px;">📋 Update Task Status</h1>
+
+        <!-- Task Details -->
+        <div style="background:white; padding:24px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:24px;">
+            <p style="font-size:16px; font-weight:600; color:#3c4043;">{{ assignment.need.title }}</p>
+            <p style="font-size:13px; color:#5f6368; margin-top:4px;">📍 {{ assignment.need.location_name }}</p>
+            <p style="font-size:13px; color:#3c4043; margin-top:8px;">{{ assignment.need.description }}</p>
+
+            {% if assignment.notes %}
+            <div style="background:#fef7e0; padding:12px; border-radius:6px; margin-top:12px;">
+                <p style="font-size:13px; color:#f29900;"><strong>Manager notes:</strong> {{ assignment.notes }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Google Maps Direction Button -->
+            {% if assignment.need.latitude and assignment.need.longitude %}
+            <div style="margin-top:16px;">
+                <a href="https://www.google.com/maps/dir/?api=1&destination={{ assignment.need.latitude }},{{ assignment.need.longitude }}"
+                    target="_blank"
+                    style="background:#34a853; color:white; padding:10px 20px; border-radius:4px; text-decoration:none; font-size:14px; font-weight:500; display:inline-flex; align-items:center; gap:8px;">
+                    🗺️ Get Directions to Location
+                </a>
+            </div>
+            {% else %}
+            <div style="margin-top:16px;">
+                <a href="https://www.google.com/maps/search/{{ assignment.need.location_name }}"
+                    target="_blank"
+                    style="background:#34a853; color:white; padding:10px 20px; border-radius:4px; text-decoration:none; font-size:14px; font-weight:500; display:inline-flex; align-items:center; gap:8px;">
+                    🗺️ Search Location on Maps
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Availability Toggle -->
+        <div style="background:white; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:24px;">
+            <p style="font-weight:600; color:#3c4043; margin-bottom:12px;">🔄 Your Availability</p>
+            <div style="display:flex; align-items:center; gap:16px;">
+                <span style="font-size:14px; color:#5f6368;">Busy</span>
+                <label style="position:relative; display:inline-block; width:56px; height:28px; cursor:pointer;">
+                    <input type="checkbox" id="availToggle"
+                        onchange="updateAvailability(this)"
+                        style="opacity:0; width:0; height:0;">
+                    <span id="toggleSlider" style="position:absolute; top:0; left:0; right:0; bottom:0; background:#ea4335; border-radius:28px; transition:0.3s;">
+                        <span id="toggleCircle" style="position:absolute; height:20px; width:20px; left:4px; bottom:4px; background:white; border-radius:50%; transition:0.3s;"></span>
+                    </span>
+                </label>
+                <span style="font-size:14px; color:#5f6368;">Available</span>
+                <span id="availStatus" style="font-size:13px; font-weight:600; color:#5f6368;">Checking...</span>
+            </div>
+        </div>
+
+        <!-- Update Form -->
+        <div style="background:white; padding:24px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-weight:500; margin-bottom:8px; color:#3c4043;">Update Status *</label>
+                    <select name="status" required
+                        style="width:100%; padding:12px; border:1px solid #dadce0; border-radius:4px; font-size:14px;">
+                        <option value="accepted" {% if assignment.status == 'accepted' %}selected{% endif %}>✋ Accepted</option>
+                        <option value="in_progress" {% if assignment.status == 'in_progress' %}selected{% endif %}>🔄 In Progress</option>
+                        <option value="completed" {% if assignment.status == 'completed' %}selected{% endif %}>✅ Completed</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                    <label style="display:block; font-weight:500; margin-bottom:6px; color:#3c4043;">Completion Notes</label>
+                    <textarea name="completion_notes" rows="3"
+                        style="width:100%; padding:12px; border:1px solid #dadce0; border-radius:4px; font-size:14px; resize:vertical;"
+                        placeholder="Describe what was done...">{{ assignment.completion_notes }}</textarea>
+                </div>
+
+                <div style="margin-bottom:24px;">
+                    <label style="display:block; font-weight:500; margin-bottom:6px; color:#3c4043;">Upload Completion Photo</label>
+                    <input type="file" name="completion_photo" accept="image/*"
+                        style="width:100%; padding:12px; border:1px solid #dadce0; border-radius:4px; font-size:14px;">
+                </div>
+
+                <button type="submit" class="btn-primary" style="font-size:15px; padding:13px;">
+                    💾 Update Task
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const toggle = document.getElementById('availToggle');
+const slider = document.getElementById('toggleSlider');
+const circle = document.getElementById('toggleCircle');
+const status = document.getElementById('availStatus');
+
+function updateVisual(isAvailable) {
+    if (isAvailable) {
+        slider.style.background = '#34a853';
+        circle.style.left = '32px';
+        status.textContent = '✅ Available';
+        status.style.color = '#34a853';
+        toggle.checked = true;
+    } else {
+        slider.style.background = '#ea4335';
+        circle.style.left = '4px';
+        status.textContent = '🔴 Busy';
+        status.style.color = '#ea4335';
+        toggle.checked = false;
+    }
+}
+
+// Load current availability from server on page load
+fetch('/volunteers/availability/status/')
+    .then(r => r.json())
+    .then(data => updateVisual(data.available))
+    .catch(() => updateVisual(false));
+
+function updateAvailability(checkbox) {
+    updateVisual(checkbox.checked);
+    fetch('/volunteers/availability/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ available: checkbox.checked })
+    });
+}
+</script>
+{% endblock %}

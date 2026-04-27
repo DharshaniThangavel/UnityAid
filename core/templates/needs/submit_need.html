@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background: var(--background);">
+
+    <!-- Top Nav -->
+    <div style="background: var(--primary-blue); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">📋</span>
+            <h1 style="color: white; font-size: 20px; font-weight: 600; letter-spacing: -0.5px;">Field Submission</h1>
+        </div>
+        <a href="{% url 'dashboard' %}" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 14px; font-weight: 500;">Back to Dashboard</a>
+    </div>
+
+    <div style="max-width: 800px; margin: 60px auto; padding: 0 20px;">
+        
+        <div style="text-align: center; margin-bottom: 48px;">
+            <h2 style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Report a Local Need</h2>
+            <p style="color: var(--text-secondary); font-size: 16px;">Direct digital entry for field workers. AI will automatically score urgency and recommend actions after submission.</p>
+        </div>
+
+        <div class="card" style="padding: 48px; border-radius: 24px;">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div style="margin-bottom: 32px;">
+                    <label style="display: block; font-weight: 600; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;">Problem Title</label>
+                    <input type="text" name="title" required
+                        style="width: 100%; padding: 14px 16px; border: 1px solid #dadce0; border-radius: 8px; font-size: 15px; font-weight: 500; outline: none;"
+                        placeholder="e.g. Broken water pipe in North Sector">
+                </div>
+
+                <div style="margin-bottom: 32px;">
+                    <label style="display: block; font-weight: 600; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;">Impact Category</label>
+                    <select name="category" required
+                        style="width: 100%; padding: 14px 16px; border: 1px solid #dadce0; border-radius: 8px; font-size: 15px; outline: none;">
+                        <option value="">-- Select Category --</option>
+                        {% for value, label in categories %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 32px;">
+                    <label style="display: block; font-weight: 600; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;">Detailed Description</label>
+                    <textarea name="description" required rows="5"
+                        style="width: 100%; padding: 14px 16px; border: 1px solid #dadce0; border-radius: 8px; font-size: 15px; line-height: 1.6; outline: none;"
+                        placeholder="Describe the situation, number of affected people, and immediate requirements..."></textarea>
+                </div>
+
+                <div style="margin-bottom: 32px;">
+                    <label style="display: block; font-weight: 600; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;">Exact Location</label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: 14px; top: 14px; font-size: 18px;">📍</span>
+                        <input type="text" name="location_name" required
+                            style="width: 100%; padding: 14px 16px 14px 44px; border: 1px solid #dadce0; border-radius: 8px; font-size: 15px; font-weight: 500; outline: none;"
+                            placeholder="Village / Street / Landmark name">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 48px;">
+                    <label style="display: block; font-weight: 600; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;">Documentary Evidence (Photo)</label>
+                    <div style="border: 2px dashed #dadce0; border-radius: 12px; padding: 32px; text-align: center; cursor: pointer;" 
+                         onclick="this.querySelector('input').click()">
+                        <span style="font-size: 24px; display: block; margin-bottom: 8px;">📸</span>
+                        <span style="color: var(--text-secondary); font-size: 14px;">Click to upload or take a photo</span>
+                        <input type="file" name="photo" accept="image/*" style="display: none;" onchange="this.parentElement.style.borderColor='var(--primary-green)'">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 18px; border-radius: 36px; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                    Submit to Dashboard
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

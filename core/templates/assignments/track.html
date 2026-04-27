@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background:#f8f9fa; padding: 40px 20px;">
+    <div style="max-width: 1000px; margin: 0 auto;">
+        
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px;">
+            <div>
+                <a href="{% url 'manager_dashboard' %}" style="display: flex; align-items: center; gap: 8px; color: var(--text-secondary); text-decoration: none; font-size: 14px; margin-bottom: 12px; font-weight: 500;">
+                    <span class="material-icons" style="font-size: 18px;">arrow_back</span> Back to Dashboard
+                </a>
+                <h1 style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">🛰️ Mission Monitor</h1>
+                <p style="color: var(--text-secondary); font-size: 16px;">Tracking mobilization for: <strong>{{ need.title }}</strong></p>
+            </div>
+            <div style="text-align: right;">
+                <span style="background: white; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; color: {% if need.status == 'resolved' %}#34a853{% else %}#1a73e8{% endif %}; box-shadow: var(--shadow);">
+                    Current Status: {{ need.get_status_display|upper }}
+                </span>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px;">
+            
+            <!-- Left Column: Assignments -->
+            <div>
+                <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 24px;">
+                    <div style="padding: 20px; border-bottom: 1px solid #f1f3f4; background: white; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Mobilized Workforce ({{ assignments.count }})</h3>
+                        <a href="{% url 'assign_volunteer' need.id %}" class="btn-primary" style="padding: 8px 16px; font-size: 12px; border-radius: 20px; text-decoration: none;">
+                            ➕ Add Alternate Volunteer
+                        </a>
+                    </div>
+                    
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead style="background: #f8f9fa;">
+                            <tr>
+                                <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Volunteer</th>
+                                <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Status / Proof</th>
+                                <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Audit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in assignments %}
+                            <tr style="border-bottom: 1px solid #f1f3f4;">
+                                <td style="padding: 16px;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 32px; height: 32px; background: #e8f0fe; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #1a73e8; font-weight: 700;">
+                                            {{ assignment.volunteer.username|slice:":1" }}
+                                        </div>
+                                        <div>
+                                            <p style="font-size: 14px; font-weight: 600; color: var(--text-primary);">{{ assignment.volunteer.username }}</p>
+                                            <p style="font-size: 11px; color: var(--text-secondary);">{{ assignment.volunteer.volunteer_profile.skills|truncatechars:20 }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding: 16px;">
+                                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                                        <div>
+                                            {% if assignment.status == 'assigned' %}
+                                            <span style="background: #fef7e0; color: #b06000; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 700;">📡 PENDING</span>
+                                            {% elif assignment.status == 'accepted' %}
+                                            <span style="background: #e8f0fe; color: #1a73e8; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 700;">🤝 ACCEPTED</span>
+                                            {% elif assignment.status == 'completed' %}
+                                            <span style="background: #e6f4ea; color: #34a853; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 700;">✅ COMPLETED</span>
+                                            {% else %}
+                                            <span style="background: #f1f3f4; color: var(--text-secondary); padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 700;">{{ assignment.status|upper }}</span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if assignment.completion_photo or assignment.completion_notes %}
+                                        <div style="background: #f8f9fa; padding: 8px; border-radius: 8px; border: 1px dashed #dadce0;">
+                                            {% if assignment.completion_photo %}
+                                            <div style="margin-bottom: 6px;">
+                                                <img src="{{ assignment.completion_photo.url }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px; cursor: pointer;" onclick="window.open(this.src)">
+                                            </div>
+                                            {% endif %}
+                                            {% if assignment.completion_notes %}
+                                            <p style="font-size: 11px; color: #5f6368; line-height: 1.4;">{{ assignment.completion_notes|truncatechars:100 }}</p>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td style="padding: 16px;">
+                                    {% if assignment.is_verified %}
+                                    <div style="display: flex; align-items: center; gap: 4px; color: #34a853; font-weight: 700; font-size: 13px;">
+                                        <span class="material-icons" style="font-size: 18px;">verified</span> Verified
+                                    </div>
+                                    {% elif assignment.status == 'completed' %}
+                                    <form method="POST" action="{% url 'verify_assignment' assignment.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" style="background: #34a853; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 8px rgba(52,168,83,0.2);">
+                                            Verify Work
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span style="font-size: 11px; color: #9aa0a6; font-style: italic;">Awaiting Finish</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                                    No volunteers mobilized for this mission yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if need.status != 'resolved' %}
+                <div style="background: #fff8e1; border: 1px solid #ffe082; padding: 16px; border-radius: 12px; display: flex; align-items: flex-start; gap: 12px;">
+                    <span class="material-icons" style="color: #f57f17;">info</span>
+                    <p style="font-size: 13px; color: #7f5f00; line-height: 1.5;">
+                        <strong>Deployment Advice:</strong> If assigned volunteers do not accept within 30 minutes, consider assigning alternate volunteers with similar skills to ensure the community need is met promptly.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column: Context Information -->
+            <div>
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="font-size: 14px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 16px;">Community Report Context</h3>
+                    <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                        <p style="font-size: 14px; line-height: 1.6; color: var(--text-primary);">{{ need.description }}</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-secondary);">
+                        <span class="material-icons" style="font-size: 16px;">location_on</span> {{ need.location_name }}
+                    </div>
+                </div>
+
+                {% if need.ai_recommendation %}
+                <div class="card" style="background: linear-gradient(135deg, #e8f0fe 0%, #ffffff 100%); border: 1px solid #d2e3fc;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                        <span style="font-size: 18px;">✨</span>
+                        <h3 style="font-size: 14px; font-weight: 700; color: #1a73e8; text-transform: uppercase;">Strategic Briefing</h3>
+                    </div>
+                    <p style="font-size: 13px; color: #1557b0; line-height: 1.6; font-style: italic;">"{{ need.ai_recommendation }}"</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

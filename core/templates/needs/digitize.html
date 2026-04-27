@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background: var(--background);">
+
+    <!-- Top Nav -->
+    <div style="background: var(--primary-blue); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">📄</span>
+            <h1 style="color: white; font-size: 20px; font-weight: 600; letter-spacing: -0.5px;">Document Digitization</h1>
+        </div>
+        <a href="{% url 'manager_dashboard' %}" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 14px; font-weight: 500;">Back to Dashboard</a>
+    </div>
+
+    <div style="max-width: 800px; margin: 60px auto; padding: 0 20px;">
+        
+        <div style="text-align: center; margin-bottom: 48px;">
+            <h2 style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Digitize Community Surveys</h2>
+            <p style="color: var(--text-secondary); font-size: 16px;">Turn paper field reports into actionable data points on the impact map using Gemini Vision AI.</p>
+        </div>
+
+        <div class="card" style="padding: 48px; border-radius: 24px; position: relative; overflow: hidden;">
+            <!-- Background Decoration -->
+            <div style="position: absolute; top: -100px; right: -100px; width: 200px; height: 200px; background: rgba(26,115,232,0.05); border-radius: 50%;"></div>
+            
+            {% if error %}
+            <div class="error-msg" style="margin-bottom: 32px;">
+                <span style="font-size: 20px;">⚠️</span>
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data" id="digitizeForm">
+                {% csrf_token %}
+
+                <!-- Custom Upload Box -->
+                <div style="border: 2px dashed #dadce0; border-radius: 16px; padding: 60px 40px; text-align: center; cursor: pointer; transition: all 0.3s; background: #fdfdfd;"
+                    id="dropZone"
+                    onclick="document.getElementById('fileInput').click()"
+                    onmouseover="this.style.borderColor='var(--primary-blue)'; this.style.background='#f8f9ff'"
+                    onmouseout="this.style.borderColor='#dadce0'; this.style.background='#fdfdfd'">
+                    
+                    <div style="background: #e8f0fe; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <span style="font-size: 32px;">📸</span>
+                    </div>
+                    <h3 style="color: var(--text-primary); font-size: 18px; font-weight: 600; margin-bottom: 8px;">Upload Paper Report Photo</h3>
+                    <p style="color: var(--text-secondary); font-size: 14px;">Drag and drop or click to browse files</p>
+                    <p style="color: #9aa0a6; font-size: 12px; margin-top: 12px;">Supports high-resolution JPG, PNG, and HEIC</p>
+                    
+                    <input type="file" name="file" id="fileInput" accept="image/*" required
+                        style="display:none" onchange="handleFileSelect(this)">
+                </div>
+
+                <div id="filePreview" style="display: none; margin-top: 24px; padding: 16px; background: #f1f3f4; border-radius: 12px; align-items: center; gap: 12px;">
+                    <span style="font-size: 24px;">📄</span>
+                    <div style="flex: 1;">
+                        <p id="fileName" style="font-weight: 600; color: var(--text-primary); font-size: 14px;"></p>
+                        <p id="fileSize" style="color: var(--text-secondary); font-size: 12px;"></p>
+                    </div>
+                    <button type="button" onclick="resetFile()" style="background: none; border: none; color: var(--primary-red); cursor: pointer; font-weight: 600; font-size: 13px;">Remove</button>
+                </div>
+
+                <div style="margin-top: 40px; padding: 24px; background: #f8f9fa; border-radius: 16px; border: 1px solid #f1f3f4;">
+                    <p style="font-weight: 600; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span style="color: var(--primary-blue);">✨</span> 
+                        Gemini AI Extraction Capabilities
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary);">
+                            <span style="color: var(--primary-green);">●</span> Handwritten Text Detection
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary);">
+                            <span style="color: var(--primary-green);">●</span> Automatic Urgency Scoring
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary);">
+                            <span style="color: var(--primary-green);">●</span> Location Extraction
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary);">
+                            <span style="color: var(--primary-green);">●</span> Categorization
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn" style="width: 100%; margin-top: 40px; padding: 18px; border-radius: 36px; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 12px;" disabled>
+                    <span>Extract with Gemini 1.5 Flash</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 1000; flex-direction: column; align-items: center; justify-content: center;">
+    <div style="width: 80px; height: 80px; border: 8px solid #f3f3f3; border-top: 8px solid var(--primary-blue); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <h2 style="margin-top: 32px; color: var(--text-primary); font-weight: 700;">Analyzing Document...</h2>
+    <p style="color: var(--text-secondary); margin-top: 12px;">Gemini Vision AI is identifying community needs.</p>
+    <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+</div>
+
+<script>
+function handleFileSelect(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        document.getElementById('filePreview').style.display = 'flex';
+        document.getElementById('dropZone').style.display = 'none';
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+        document.getElementById('submitBtn').disabled = false;
+    }
+}
+
+function resetFile() {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('filePreview').style.display = 'none';
+    document.getElementById('dropZone').style.display = 'block';
+    document.getElementById('submitBtn').disabled = true;
+}
+
+document.getElementById('digitizeForm').onsubmit = function() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+};
+</script>
+{% endblock %}

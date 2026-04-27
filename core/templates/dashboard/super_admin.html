@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background: var(--background);">
+
+    <!-- Header Navigation -->
+    <div style="background: #202124; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">👑</span>
+            <h1 style="color: white; font-size: 20px; font-weight: 600; letter-spacing: -0.5px;">Platform Command Center</h1>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="text-align: right;">
+                <p style="color: white; font-size: 14px; font-weight: 600;">{{ user.username }}</p>
+                <p style="color: rgba(255,255,255,0.6); font-size: 11px; text-transform: uppercase;">System Administrator</p>
+            </div>
+            <a href="/logout/" style="background: rgba(255,255,255,0.1); color: white; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 1px solid rgba(255,255,255,0.2);">Sign Out</a>
+        </div>
+    </div>
+
+    <div style="padding: 40px; max-width: 1400px; margin: 0 auto;">
+
+        <!-- Platform Analytics -->
+        <div style="margin-bottom: 40px;">
+            <h2 style="font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 20px;">Platform Health</h2>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+                <div class="card" style="border-top: 4px solid var(--primary-blue);">
+                    <p style="color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Organizations</p>
+                    <h3 style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-top: 8px;">{{ all_ngos.count }}</h3>
+                    <div style="margin-top: 16px; font-size: 13px; color: var(--primary-green); font-weight: 500;">
+                        Active Partnerships: {{ approved_ngos }}
+                    </div>
+                </div>
+                <div class="card" style="border-top: 4px solid var(--primary-yellow);">
+                    <p style="color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase;">Awaiting Review</p>
+                    <h3 style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-top: 8px;">{{ pending_ngos }}</h3>
+                    <div style="margin-top: 16px; font-size: 13px; color: var(--text-secondary);">
+                        NGO Applications Pending
+                    </div>
+                </div>
+                <div class="card" style="border-top: 4px solid var(--primary-green);">
+                    <p style="color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase;">Global Impact</p>
+                    <h3 style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-top: 8px;">{{ total_needs }}</h3>
+                    <div style="margin-top: 16px; font-size: 13px; color: var(--primary-green); font-weight: 500;">
+                        {{ resolved_needs }} Issues Resolved
+                    </div>
+                </div>
+                <div class="card" style="border-top: 4px solid var(--primary-red);">
+                    <p style="color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase;">Critical Risks</p>
+                    <h3 style="font-size: 32px; font-weight: 700; color: var(--primary-red); margin-top: 8px;">{{ high_urgency }}</h3>
+                    <div style="margin-top: 16px; font-size: 13px; color: var(--primary-red); font-weight: 500;">
+                        Requires Immediate NGO Action
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NGO Approval Queue -->
+        {% if pending_ngos > 0 %}
+        <div style="margin-bottom: 40px;">
+            <div style="background: #fff8e1; border: 1px solid #fbbc04; border-radius: 16px; padding: 32px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                    <span style="font-size: 24px;">⏳</span>
+                    <h2 style="font-size: 20px; font-weight: 700; color: #b06000;">NGO Verification Queue</h2>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px;">
+                    {% for stat in ngo_stats %}
+                    {% if not stat.ngo.is_approved %}
+                    <div class="card" style="border: 1px solid #ffe082; display: flex; flex-direction: column;">
+                        <div style="flex: 1;">
+                            <h4 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">{{ stat.ngo.name }}</h4>
+                            <p style="color: var(--primary-blue); font-size: 13px; font-weight: 600; margin-bottom: 12px;">📍 {{ stat.ngo.city }}, {{ stat.ngo.state }}</p>
+                            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">{{ stat.ngo.description|truncatechars:150 }}</p>
+                            
+                            <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;">
+                                <div style="margin-bottom: 4px;"><strong>Email:</strong> {{ stat.ngo.email }}</div>
+                                <div><strong>Phone:</strong> {{ stat.ngo.phone }}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 12px; border-top: 1px solid #f1f3f4; padding-top: 20px; margin-top: 12px;">
+                            <form method="POST" action="/ngo/approve/{{ stat.ngo.id }}/" style="flex: 1;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" class="btn-primary" style="width: 100%; padding: 10px; border-radius: 8px; font-size: 13px; background: var(--primary-green);">Approve NGO</button>
+                            </form>
+                            <form method="POST" action="/ngo/approve/{{ stat.ngo.id }}/" style="flex: 1;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <button type="submit" style="width: 100%; padding: 10px; border-radius: 8px; font-size: 13px; background: #ea4335; color: white; border: none; font-weight: 600; cursor: pointer;">Reject</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Master NGO List -->
+        <div class="card" style="padding: 0; overflow: hidden; border-radius: 16px;">
+            <div style="padding: 24px 32px; border-bottom: 1px solid #f1f3f4; background: #fafafa;">
+                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary);">Organization Directory</h3>
+            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8f9fa; border-bottom: 1px solid #dadce0;">
+                        <th style="padding: 16px 32px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">NGO Details</th>
+                        <th style="padding: 16px 32px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">HQ Location</th>
+                        <th style="padding: 16px 32px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Status</th>
+                        <th style="padding: 16px 32px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Resources</th>
+                        <th style="padding: 16px 32px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Resolved</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in ngo_stats %}
+                    <tr style="border-bottom: 1px solid #f1f3f4; transition: background 0.2s;" onmouseover="this.style.background='#fcfdfe'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 16px 32px;">
+                            <p style="font-weight: 700; color: var(--text-primary); font-size: 15px;">{{ stat.ngo.name }}</p>
+                            <p style="font-size: 12px; color: var(--text-secondary);">{{ stat.ngo.email }}</p>
+                        </td>
+                        <td style="padding: 16px 32px; font-size: 14px; color: var(--text-secondary);">
+                            {{ stat.ngo.city }}, {{ stat.ngo.state }}
+                        </td>
+                        <td style="padding: 16px 32px; text-align: center;">
+                            {% if stat.ngo.is_approved %}
+                            <span style="background: #e6f4ea; color: var(--primary-green); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid rgba(52,168,83,0.2);">ACTIVE PARTNER</span>
+                            {% else %}
+                            <span style="background: #fff7e0; color: #b06000; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid rgba(251,188,4,0.2);">PENDING</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 16px 32px; text-align: center;">
+                            <div style="font-weight: 700; color: var(--text-primary); font-size: 15px;">{{ stat.volunteers }}</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase;">Volunteers</div>
+                        </td>
+                        <td style="padding: 16px 32px; text-align: center;">
+                            <div style="font-weight: 700; color: var(--primary-green); font-size: 15px;">{{ stat.resolved }}</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase;">Resolved</div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="padding: 60px; text-align: center; color: var(--text-secondary);">
+                            <span style="font-size: 40px; display: block; margin-bottom: 16px;">🏢</span>
+                            No NGOs have registered with the platform yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

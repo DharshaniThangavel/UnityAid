@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background:#f8f9fa;">
+    <!-- Nav -->
+    <div style="background:#1a73e8; padding:16px 32px; display:flex; justify-content:space-between; align-items:center;">
+        <h1 style="color:white; font-size:20px; font-weight:600;">🙋 Mission Control</h1>
+        <div style="display:flex; gap:12px; align-items:center;">
+            <span style="color:rgba(255,255,255,0.8); font-size:14px;">{{ user.username }}</span>
+            <a href="/volunteers/profile/" style="background:white; color:#1a73e8; padding:8px 16px; border-radius:4px; text-decoration:none; font-size:13px; font-weight:500;">Edit Profile</a>
+            <a href="/logout/" style="color:rgba(255,255,255,0.7); font-size:13px; text-decoration:none;">Logout</a>
+        </div>
+    </div>
+
+    <div style="padding:20px; max-width:600px; margin:0 auto;">
+
+        <!-- Tactical Stats -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0;">
+            <div style="background: white; padding: 16px; border-radius: 16px; border-bottom: 4px solid var(--primary-green); box-shadow: var(--shadow);">
+                <p style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; margin-bottom: 4px;">Current Status</p>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: {% if profile.availability %}#34a853{% else %}#ea4335{% endif %}"></span>
+                    <span style="font-weight: 700; color: var(--text-primary);">{% if profile.availability %}AVAILABLE{% else %}BUSY{% endif %}</span>
+                </div>
+            </div>
+            <div style="background: white; padding: 16px; border-radius: 16px; border-bottom: 4px solid var(--primary-blue); box-shadow: var(--shadow);">
+                <p style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; margin-bottom: 4px;">Impact</p>
+                <span style="font-weight: 700; color: var(--text-primary);">{{ profile.tasks_completed }} MISSIONS DONE</span>
+            </div>
+        </div>
+
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">🚀 Active Missions</h3>
+
+        {% for assignment in assignments %}
+        <div style="background: white; border-radius: 24px; padding: 24px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f1f3f4;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                <span style="background: #e8f0fe; color: var(--primary-blue); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase;">{{ assignment.get_status_display }}</span>
+                <span style="font-size: 12px; color: var(--text-secondary);">Added {{ assignment.assigned_at|timesince }} ago</span>
+            </div>
+            
+            <h4 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">{{ assignment.need.title }}</h4>
+            <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">{{ assignment.need.description|truncatechars:150 }}</p>
+
+            <div style="background: #f8f9fa; padding: 16px; border-radius: 16px; margin-bottom: 24px;">
+                <p style="font-size: 13px; color: var(--text-primary);">
+                    📍 <strong>{{ assignment.need.location_name }}</strong>
+                </p>
+                {% if assignment.need.latitude %}
+                <a href="https://www.google.com/maps/dir/?api=1&destination={{ assignment.need.latitude }},{{ assignment.need.longitude }}" target="_blank"
+                   style="display: inline-block; margin-top: 12px; color: var(--primary-blue); text-decoration: none; font-size: 13px; font-weight: 600;">
+                   🗺️ Open in Google Maps →
+                </a>
+                {% endif %}
+            </div>
+
+            {% if assignment.notes %}
+            <div style="border-left: 3px solid #fbbc04; padding-left: 12px; margin-bottom: 24px;">
+                <p style="font-size: 13px; font-style: italic; color: var(--text-secondary);">"{{ assignment.notes }}"</p>
+            </div>
+            {% endif %}
+
+            <a href="/assignments/update/{{ assignment.id }}/"
+               style="display: block; width: 100%; padding: 16px; background: var(--primary-blue); color: white; text-align: center; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 15px;">
+               UPDATE STATUS
+            </a>
+        </div>
+        {% empty %}
+        <div style="padding: 60px; text-align: center; background: white; border-radius: 24px; border: 2px dashed #dadce0;">
+            <p style="font-size: 48px; margin-bottom: 16px;">😴</p>
+            <p style="font-size: 18px; font-weight: 700; color: var(--text-primary);">All Clear!</p>
+            <p style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">No active missions assigned yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

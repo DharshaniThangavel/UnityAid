@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background:#f8f9fa; padding:32px 20px;">
+    <div style="max-width:800px; margin:0 auto;">
+
+        <!-- Header -->
+        <div style="margin-bottom:24px;">
+            <a href="/dashboard/manager/" style="color:#1a73e8; text-decoration:none; font-size:14px;">← Back to Dashboard</a>
+            <h1 style="color:#3c4043; font-size:24px; margin-top:8px;">🤝 Assign Volunteer</h1>
+        </div>
+
+        <!-- Need Details -->
+        <div style="background:white; padding:24px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:24px;">
+            <h3 style="color:#3c4043; margin-bottom:12px;">📋 Need Details</h3>
+            <p style="font-size:16px; font-weight:600; color:#3c4043;">{{ need.title }}</p>
+            <p style="font-size:13px; color:#5f6368; margin-top:4px;">{{ need.get_category_display }} — 📍 {{ need.location_name }}</p>
+            <p style="font-size:13px; color:#3c4043; margin-top:8px;">{{ need.description }}</p>
+            <div style="margin-top:12px;">
+                {% if need.urgency == 'high' %}
+                <span style="background:#fce8e6; color:#ea4335; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:600;">🔴 High Urgency</span>
+                {% elif need.urgency == 'medium' %}
+                <span style="background:#fef7e0; color:#f29900; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:600;">🟡 Medium Urgency</span>
+                {% else %}
+                <span style="background:#e6f4ea; color:#34a853; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:600;">🟢 Low Urgency</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Gemini AI Recommendations -->
+        {% if ai_matches %}
+        <div style="background:#e8f0fe; padding:24px; border-radius:16px; margin-bottom:32px; border: 1px solid rgba(26,115,232,0.2);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <span style="font-size: 20px;">✨</span>
+                <p style="color:#1a73e8; font-weight:700; font-size:16px;">AI Recommended Team</p>
+            </div>
+            <p style="color:#1a73e8; font-size:13px; margin-bottom:20px; line-height: 1.5;">{{ ai_recommendation }}</p>
+            <div style="display:grid; gap:12px;">
+                {% for match in ai_matches %}
+                <div style="background:white; padding:16px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">{% if forloop.first %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}</span>
+                            <p style="font-weight:700; color:#3c4043; font-size:15px;">{{ match.volunteer_name }}</p>
+                            <span style="background: #e8f0fe; color: #1a73e8; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;">{{ match.match_score }}%</span>
+                        </div>
+                        <p style="font-size:12px; color:#5f6368; margin-top:4px; line-height: 1.4;">{{ match.reason }}</p>
+                    </div>
+                    <button type="button" 
+                        id="btn-{{ match.volunteer_id }}"
+                        onclick="toggleVolunteer('{{ match.volunteer_id }}')"
+                        style="background: #e8f0fe; color: #1a73e8; border: none; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; min-width: 120px;">
+                        Add to Mission
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Multi-Assignment Form -->
+        <div style="background:white; padding:32px; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e8eaed;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid #f1f3f4; padding-bottom: 16px;">
+                <h3 style="color:#3c4043; font-size:18px; font-weight: 700;">Mobilize Volunteers</h3>
+                <div style="background: #f8f9fa; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #5f6368;">
+                    Selected: <span id="selection-count" style="color: var(--primary-blue);">0</span>
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div style="margin-bottom: 32px; max-height: 400px; overflow-y: auto; padding-right: 8px;">
+                    <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #9aa0a6; font-weight: 700; margin-bottom: 16px;">Available Workforce</p>
+                    
+                    {% for vol in volunteers %}
+                    <label style="display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid #f1f3f4; border-radius: 12px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s;" class="vol-item">
+                        <input type="checkbox" name="volunteer_ids" value="{{ vol.user.id }}" 
+                               style="width: 20px; height: 20px; cursor: pointer;" 
+                               onchange="updateUI()">
+                        <div style="flex: 1;">
+                            <p style="font-weight: 700; color: #3c4043; font-size: 15px;">{{ vol.user.username }}</p>
+                            <p style="font-size: 13px; color: #5f6368; margin-top: 2px;">{{ vol.skills }} — 📍 {{ vol.location }}</p>
+                        </div>
+                    </label>
+                    {% empty %}
+                    <p style="text-align: center; color: #5f6368; padding: 40px;">No available volunteers currently match this NGO.</p>
+                    {% endfor %}
+                </div>
+
+                <div style="margin-bottom:32px;">
+                    <label style="display:block; font-weight:700; margin-bottom:8px; color:#3c4043; font-size: 14px;">Mission Briefing (Notes for all selected)</label>
+                    <textarea name="notes" rows="4" required
+                        style="width:100%; padding:16px; border:1px solid #dadce0; border-radius:12px; font-size:14px; outline: none; transition: border-color 0.2s;"
+                        placeholder="Provide clear instructions for the team..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 18px; border-radius: 40px; font-size: 16px; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(26,115,232,0.3);">
+                    🚀 Start Mission with Selected Team
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleVolunteer(id) {
+    const checkbox = document.querySelector(`input[name="volunteer_ids"][value="${id}"]`);
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        updateUI();
+    }
+}
+
+function updateUI() {
+    const checkboxes = document.querySelectorAll('input[name="volunteer_ids"]');
+    const checked = Array.from(checkboxes).filter(c => c.checked);
+    
+    // Update counter
+    document.getElementById('selection-count').textContent = checked.length;
+    
+    // Update "vol-item" styling
+    checkboxes.forEach(c => {
+        const parent = c.closest('.vol-item');
+        if (c.checked) {
+            parent.style.borderColor = '#1a73e8';
+            parent.style.background = '#f8faff';
+        } else {
+            parent.style.borderColor = '#f1f3f4';
+            parent.style.background = 'white';
+        }
+    });
+
+    // Update AI buttons text
+    checked.forEach(c => {
+        const btn = document.getElementById(`btn-${c.value}`);
+        if (btn) {
+            btn.innerHTML = '✓ Selected';
+            btn.style.background = '#34a853';
+            btn.style.color = 'white';
+        }
+    });
+    
+    const unselectedIds = Array.from(checkboxes).filter(c => !c.checked).map(c => c.value);
+    unselectedIds.forEach(id => {
+        const btn = document.getElementById(`btn-${id}`);
+        if (btn) {
+            btn.innerHTML = 'Add to Mission';
+            btn.style.background = '#e8f0fe';
+            btn.style.color = '#1a73e8';
+        }
+    });
+}
+
+// Initial UI sync
+window.onload = updateUI;
+</script>
+{% endblock %}

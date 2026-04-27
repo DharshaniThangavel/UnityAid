@@ -1,0 +1,21 @@
+{
+    "name": "UnityAid",
+    "short_name": "UnityAid",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#1a73e8",
+    "description": "Smart Volunteer & Resource Coordination Platform",
+    "icons": [
+        {
+            "src": "https://img.icons8.com/color/192/000000/unity.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://img.icons8.com/color/512/000000/unity.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

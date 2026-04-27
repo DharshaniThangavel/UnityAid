@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background: var(--background);">
+
+    <style>
+        @keyframes pulse-alert {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.4); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(234, 67, 53, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(234, 67, 53, 0); }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            width: 90%; max-width: 650px;
+            max-height: 85vh;
+            border-radius: 24px;
+            overflow-y: auto;
+            position: relative;
+            padding: 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+    </style>
+
+    <!-- Top Navigation -->
+    <div style="background: var(--primary-blue); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: var(--shadow);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">🤝</span>
+            <h1 style="color: white; font-size: 20px; font-weight: 600; letter-spacing: -0.5px;">UnityAid</h1>
+        </div>
+        <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+            
+            <!-- MISSION ALERTS HUB (ALWAYS VISIBLE) -->
+           <!-- <div id="notif-tab" style="position: relative; cursor: pointer; background: {% if response_alerts or resource_gaps %}#ea4335{% else %}rgba(255,255,255,0.2){% endif %}; padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.3); {% if response_alerts or resource_gaps %}animation: pulse-alert 2s infinite;{% endif %}" 
+                onclick="toggleAlertModal(true)">
+                <span class="material-icons" style="color: white; font-size: 18px;">{% if response_alerts or resource_gaps %}notifications_active{% else %}notifications_none{% endif %}</span>
+                <span style="color: white; font-size: 12px; font-weight: 700;">
+                    {% if response_alerts or resource_gaps %}{{ response_alerts|length|add:resource_gaps|length }} URGENT ALERTS{% else %}NOTIFICATIONS{% endif %}
+                </span>
+            </div>-->
+
+            <span style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500;">{{ user.ngo }}</span>
+            <a href="/volunteers/" class="btn-google" style="padding: 8px 16px; border: none; font-size: 13px;">👥 Volunteers</a>
+            <a href="{% url 'mission_history' %}" class="btn-google" style="padding: 8px 16px; border: none; font-size: 13px;">📜 History</a>
+            <a href="/analytics/" class="btn-google" style="padding: 8px 16px; border: none; font-size: 13px;">📊 Analytics</a>
+            <a href="/digitize/" class="btn-google" style="padding: 8px 16px; border: none; font-size: 13px; background: white; color: var(--primary-blue);">📄 Digitize</a>
+            <a href="/submit/" class="btn-google" style="padding: 8px 16px; border: none; font-size: 13px;">+ Submit Need</a>
+            <a href="/logout/" style="color: rgba(255,255,255,0.8); font-size: 13px; text-decoration: none; margin-left: 12px;">Logout</a>
+        </div>
+    </div>
+
+    <div style="padding: 32px; max-width: 1400px; margin: 0 auto;">
+
+        <!-- Intelligence Center is now handled via the Top Navigation Modal (notif-tab) -->
+
+        <!-- Charts Top Row -->
+        <div style="margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+                <h2 style="font-size: 28px; font-weight: 700; color: var(--text-primary);">Needs Dashboard</h2>
+                <p style="color: var(--text-secondary); font-size: 15px;">Real-time community needs tracking and AI coordination.</p>
+            </div>
+            <div style="background: white; padding: 6px 16px; border-radius: 20px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 8px;">
+                <span style="width: 8px; height: 8px; background: var(--primary-green); border-radius: 50%; display: inline-block;"></span>
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">SYSTEM ACTIVE</span>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 40px;">
+            <div class="card" style="border-top: 4px solid var(--primary-blue);">
+                <p style="color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Community Needs</p>
+                <p style="font-size: 40px; font-weight: 700; color: var(--primary-blue); margin-top: 8px;">{{ total }}</p>
+            </div>
+            <div class="card" style="border-top: 4px solid var(--primary-red);">
+                <p style="color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">🔴 High Urgency</p>
+                <p style="font-size: 40px; font-weight: 700; color: var(--primary-red); margin-top: 8px;">{{ high }}</p>
+            </div>
+            <div class="card" style="border-top: 4px solid var(--primary-yellow);">
+                <p style="color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">⏳ Pending Action</p>
+                <p style="font-size: 40px; font-weight: 700; color: var(--primary-yellow); margin-top: 8px;">{{ pending }}</p>
+            </div>
+            <div class="card" style="border-top: 4px solid var(--primary-green);">
+                <p style="color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">✅ Successfully Resolved</p>
+                <p style="font-size: 40px; font-weight: 700; color: var(--primary-green); margin-top: 8px;">{{ resolved }}</p>
+            </div>
+        </div>
+
+        <!-- AI Badge -->
+        <div style="background: #e8f0fe; padding: 12px 24px; border-radius: 30px; margin-bottom: 32px; display: inline-flex; align-items: center; gap: 12px; border: 1px solid rgba(26,115,232,0.1);">
+            <span style="font-size: 18px;">✨</span>
+            <p style="color: var(--primary-blue); font-size: 14px; font-weight: 500;">Intelligence Layer: Gemini 1.5 Flash + Google Maps Platform</p>
+        </div>
+
+        <!-- Map + Table Layout -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 40px;">
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div style="padding: 20px; border-bottom: 1px solid #f1f3f4; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="color: var(--text-primary); font-size: 16px; font-weight: 600;">📍 Regional Needs Map</h3>
+                    <div style="display: flex; gap: 12px;">
+                        <span style="font-size: 11px; font-weight: 600; color: var(--primary-red);">● HIGH</span>
+                        <span style="font-size: 11px; font-weight: 600; color: var(--primary-yellow);">● MEDIUM</span>
+                        <span style="font-size: 11px; font-weight: 600; color: var(--primary-green);">● LOW</span>
+                    </div>
+                </div>
+                <div id="map" style="height: 440px; width: 100%;"></div>
+            </div>
+
+            <div class="card" style="padding: 20px;">
+                <h3 style="color: var(--text-primary); font-size: 16px; font-weight: 600; margin-bottom: 20px;">📊 Category Distribution</h3>
+                <div id="categoryChart" style="height: 400px;"></div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card" style="padding: 16px 24px; margin-bottom: 24px; border-radius: 16px;">
+            <form method="GET" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                <select name="category" style="padding: 10px 16px; border: 1px solid #dadce0; border-radius: 8px; font-size: 14px; color: var(--text-primary); outline: none;">
+                    <option value="">All Categories</option>
+                    {% for value, label in categories %}
+                    <option value="{{ value }}" {% if request.GET.category == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <select name="urgency" style="padding: 10px 16px; border: 1px solid #dadce0; border-radius: 8px; font-size: 14px; color: var(--text-primary); outline: none;">
+                    <option value="">All Urgency</option>
+                    <option value="high" {% if request.GET.urgency == 'high' %}selected{% endif %}>🔴 High</option>
+                    <option value="medium" {% if request.GET.urgency == 'medium' %}selected{% endif %}>🟡 Medium</option>
+                    <option value="low" {% if request.GET.urgency == 'low' %}selected{% endif %}>🟢 Low</option>
+                </select>
+                <select name="status" style="padding: 10px 16px; border: 1px solid #dadce0; border-radius: 8px; font-size: 14px; color: var(--text-primary); outline: none;">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                </select>
+                <button type="submit" class="btn-primary" style="padding: 10px 24px;">Filter Results</button>
+                <a href="/dashboard/manager/" style="color: var(--text-secondary); font-size: 14px; text-decoration: none; font-weight: 500;">Clear Filters</a>
+            </form>
+        </div>
+
+        <!-- Broadcasting Queue: Nearby Unassigned Needs -->
+        {% if broadcast_needs %}
+        <div style="margin-bottom: 40px;">
+            <div style="background: #fff8e1; border-left: 6px solid #fbbc04; padding: 24px; border-radius: 12px; box-shadow: var(--shadow);">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                    <span style="font-size: 24px;">📢</span>
+                    <h2 style="font-size: 20px; font-weight: 700; color: #b06000;">Nearby Community Needs (Unassigned)</h2>
+                </div>
+                <p style="color: #664d00; font-size: 14px; margin-bottom: 24px;">These problems were reported by the public within 50km of your headquarters. If your organization can assist, please <strong>Claim</strong> the responsibility.</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                    {% for need in broadcast_needs %}
+                    <div style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #ffe082; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                <span style="background: #f1f3f4; color: #5f6368; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 4px; text-transform: uppercase;">{{ need.get_category_display }}</span>
+                                <span style="font-size: 11px; color: #9aa0a6;">{{ need.created_at|timesince }} ago</span>
+                            </div>
+                            <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">{{ need.title }}</h3>
+                            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 16px;">📍 {{ need.location_name }}</p>
+                            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 16px;">{{ need.description|truncatechars:120 }}</p>
+                        </div>
+                        <div style="border-top: 1px solid #f1f3f4; padding-top: 16px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; font-weight: 700; color: {% if need.urgency == 'high' %}#ea4335{% elif need.urgency == 'medium' %}#fbbc04{% else %}#34a853{% endif %};">
+                                {{ need.urgency|upper }} URGENCY
+                            </span>
+                            <form method="POST" action="{% url 'claim_need' need.id %}">
+                                {% csrf_token %}
+                                <button type="submit" style="background: var(--primary-blue); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                    Claim Responsibility
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Needs Table -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8f9fa; border-bottom: 1px solid #dadce0;">
+                        <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Problem Title</th>
+                        <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Category</th>
+                        <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Location</th>
+                        <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Urgency</th>
+                        <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Mission Clock</th>
+                        <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Mobilized Team</th>
+                        <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for need in needs %}
+                    <tr style="border-bottom: 1px solid #f1f3f4; transition: background 0.2s;" onmouseover="this.style.background='#fcfdfe'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 16px; font-size: 13px; font-weight: 600; color: var(--text-primary);">{{ need.title }}</td>
+                        <td style="padding: 16px; font-size: 12px; color: var(--text-secondary);">{{ need.get_category_display }}</td>
+                        <td style="padding: 16px; font-size: 12px; color: var(--text-secondary);">{{ need.location_name }}</td>
+                        <td style="padding: 16px;">
+                            {% if need.urgency == 'high' %}
+                            <span style="background: #fce8e6; color: var(--primary-red); padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 700;">🔴 HIGH</span>
+                            {% elif need.urgency == 'medium' %}
+                            <span style="background: #fff7e0; color: #b06000; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 700;">🟡 MED</span>
+                            {% else %}
+                            <span style="background: #e6f4ea; color: var(--primary-green); padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 700;">🟢 LOW</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 16px;">
+                            {% with latest_assignment=need.assignments.all|dictsortreversed:"updated_at"|first %}
+                                {% if latest_assignment %}
+                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                                    <span style="font-size: 13px; font-weight: 700; color: #1a73e8;">🕒 {{ latest_assignment.updated_at|timesince }}</span>
+                                    <span style="font-size: 10px; color: #5f6368; text-transform: uppercase; font-weight: 600;">Since last activity</span>
+                                </div>
+                                {% else %}
+                                <span style="font-size: 11px; color: #dadce0; font-style: italic;">No activity</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                {% with assignment_count=need.assignments.count %}
+                                    {% if assignment_count > 0 %}
+                                    <div style="background: #e8f0fe; padding: 4px 12px; border-radius: 12px; display: flex; align-items: center; gap: 6px;">
+                                        <span style="font-size: 12px; font-weight: 700; color: var(--primary-blue);">🛰️ {{ assignment_count }}</span>
+                                        <a href="{% url 'track_mission' need.id %}" style="font-size: 10px; font-weight: 700; color: var(--primary-blue); text-decoration: none; text-transform: uppercase;">Track</a>
+                                    </div>
+                                    {% else %}
+                                    <span style="color: #9aa0a6; font-size: 11px; font-style: italic;">No team yet</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{% url 'assign_volunteer' need.id %}" class="btn-primary" style="padding: 6px 12px; font-size: 11px; background: var(--primary-green); border: none; text-decoration: none;">🤝 Mobilize</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="padding:40px; text-align:center; color:#5f6368;">
+                            No needs yet. <a href="/submit/" style="color:#1a73e8;">Submit the first one</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Google Maps -->
+<script>
+const mapData = JSON.parse('{{ map_data|escapejs }}');
+
+function initMap() {
+    const center = mapData.length > 0
+        ? { lat: mapData[0].lat, lng: mapData[0].lng }
+        : { lat: 20.5937, lng: 78.9629 }; // India center
+
+    const map = new google.maps.Map(document.getElementById('map'), {
+        zoom: mapData.length > 0 ? 10 : 5,
+        center: center,
+        mapTypeControl: false,
+        streetViewControl: false,
+    });
+
+    const urgencyColors = {
+        'high': '#ea4335',
+        'medium': '#fbbc04',
+        'low': '#34a853',
+        'unscored': '#9aa0a6'
+    };
+
+    mapData.forEach(need => {
+        const marker = new google.maps.Marker({
+            position: { lat: need.lat, lng: need.lng },
+            map: map,
+            title: need.title,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: urgencyColors[need.urgency] || '#9aa0a6',
+                fillOpacity: 0.9,
+                strokeColor: 'white',
+                strokeWeight: 2,
+            }
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                <div style="padding:8px; min-width:180px;">
+                    <strong style="font-size:14px;">${need.title}</strong>
+                    <p style="margin:4px 0; font-size:12px; color:#5f6368;">${need.category}</p>
+                    <p style="margin:4px 0; font-size:12px;">📍 ${need.location}</p>
+                    <p style="margin:4px 0; font-size:12px;">Status: ${need.status}</p>
+                </div>
+            `
+        });
+
+        marker.addListener('click', () => {
+            infoWindow.open(map, marker);
+        });
+    });
+}
+</script>
+
+<!-- Google Charts -->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback(drawChart);
+
+function drawChart() {
+    const needs = JSON.parse('{{ map_data|escapejs }}');
+    const counts = {};
+    needs.forEach(n => {
+        counts[n.category] = (counts[n.category] || 0) + 1;
+    });
+
+    const data = new google.visualization.DataTable();
+    data.addColumn('string', 'Category');
+    data.addColumn('number', 'Count');
+
+    Object.entries(counts).forEach(([cat, count]) => {
+        data.addRow([cat, count]);
+    });
+
+    if (Object.keys(counts).length === 0) {
+        data.addRow(['No data yet', 1]);
+    }
+
+    const options = {
+        pieHole: 0.4,
+        colors: ['#1a73e8', '#ea4335', '#fbbc04', '#34a853', '#ff6d00', '#46bdc6', '#7c4dff'],
+        legend: { position: 'bottom' },
+        chartArea: { width: '90%', height: '75%' },
+    };
+
+    const chart = new google.visualization.PieChart(
+        document.getElementById('categoryChart')
+    );
+    chart.draw(data, options);
+}
+</script>
+
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&callback=initMap">
+</script>
+
+{% endblock %}

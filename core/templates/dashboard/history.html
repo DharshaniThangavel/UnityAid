@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background:#f8f9fa; padding: 40px 20px;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px;">
+            <div>
+                <a href="{% url 'manager_dashboard' %}" style="display: flex; align-items: center; gap: 8px; color: var(--text-secondary); text-decoration: none; font-size: 14px; margin-bottom: 12px; font-weight: 500;">
+                    <span class="material-icons" style="font-size: 18px;">arrow_back</span> Back to Dashboard
+                </a>
+                <h1 style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">📜 Mission Archive</h1>
+                <p style="color: var(--text-secondary); font-size: 16px;">Historical record of community impact and success for <strong>{{ ngo.name }}</strong></p>
+            </div>
+            <div style="background: white; padding: 12px 24px; border-radius: 12px; box-shadow: var(--shadow); text-align: center;">
+                <p style="font-size: 24px; font-weight: 700; color: var(--primary-green); margin: 0;">{{ history.count }}</p>
+                <p style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Missions Resolved</p>
+            </div>
+        </div>
+
+        <!-- AI History Note -->
+        <div style="background: #e8f0fe; padding: 20px; border-radius: 16px; margin-bottom: 32px; border: 1px solid rgba(26,115,232,0.2); display: flex; align-items: flex-start; gap: 16px;">
+            <span style="font-size: 24px;">🤖</span>
+            <div>
+                <p style="color: #1a73e8; font-weight: 700; font-size: 15px; margin-bottom: 4px;">AI Learning Bank</p>
+                <p style="color: #1a73e8; font-size: 13px; line-height: 1.5; margin: 0;">
+                    These completed missions are being used by the Gemini Intelligence Layer to predict future resource needs and improve volunteer matching scores across {{ ngo.name }}.
+                </p>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background: #f8f9fa;">
+                    <tr>
+                        <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Mission Detail</th>
+                        <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Team & Proof</th>
+                        <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Completion Date</th>
+                        <th style="padding: 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for need in history %}
+                    <tr style="border-bottom: 1px solid #f1f3f4; transition: background 0.2s;" onmouseover="this.style.background='#fcfdfe'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 16px; max-width: 300px;">
+                            <p style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">{{ need.title }}</p>
+                            <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">{{ need.description|truncatechars:120 }}</p>
+                        </td>
+                        <td style="padding: 16px;">
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                {% for assignment in need.assignments.all %}
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 24px; height: 24px; background: #e6f4ea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #34a853; font-size: 10px; font-weight: 700;">
+                                        {{ assignment.volunteer.username|slice:":1" }}
+                                    </div>
+                                    <span style="font-size: 13px; font-weight: 600; color: var(--text-primary);">{{ assignment.volunteer.username }}</span>
+                                    
+                                    {% if assignment.completion_photo %}
+                                    <span class="material-icons" style="font-size: 16px; color: #34a853; cursor: pointer;" title="Evidence Attached" onclick="window.open('{{ assignment.completion_photo.url }}')">image</span>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td style="padding: 16px; font-size: 13px; color: var(--text-secondary);">
+                            {{ need.updated_at|date:"M d, Y" }}
+                        </td>
+                        <td style="padding: 16px;">
+                            <span style="background: #e6f4ea; color: #137333; padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                <span class="material-icons" style="font-size: 14px;">check_circle</span> SUCCESS
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="padding: 60px; text-align: center; color: var(--text-secondary);">
+                            <span class="material-icons" style="font-size: 48px; color: #dadce0; margin-bottom: 16px;">folder_open</span>
+                            <p>No missions have been archived yet. Start by verifying completed volunteer work!</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

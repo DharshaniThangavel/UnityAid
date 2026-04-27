@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh; background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); display:flex; align-items:center; justify-content:center; text-align:center; padding:20px;">
+    <div>
+        <h1 style="color:white; font-size:48px; font-weight:700; margin-bottom:16px;">
+            🤝 UnityAid
+        </h1>
+        <p style="color:rgba(255,255,255,0.9); font-size:20px; margin-bottom:8px;">
+            Smart Volunteer & Resource Coordination
+        </p>
+        <p style="color:rgba(255,255,255,0.7); font-size:16px; margin-bottom:40px;">
+            Powered by Google AI ✨
+        </p>
+        <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin-top:32px;">
+    <a href="/login/" style="background:white; color:#1a73e8; padding:14px 32px; border-radius:24px; text-decoration:none; font-weight:600; font-size:16px;">
+        Login
+    </a>
+    <a href="/signup/" style="background:transparent; color:white; padding:14px 32px; border-radius:24px; text-decoration:none; font-weight:600; font-size:16px; border:2px solid white;">
+        Sign Up (Public)
+    </a>
+    <a href="/report/" style="background:rgba(255,255,255,0.2); color:white; padding:14px 32px; border-radius:24px; text-decoration:none; font-weight:600; font-size:16px; border:2px solid rgba(255,255,255,0.5);">
+        📢 Report a Need
+    </a>
+    <a href="/ngo/register/" style="background:rgba(255,255,255,0.15); color:white; padding:14px 32px; border-radius:24px; text-decoration:none; font-weight:600; font-size:16px; border:2px solid rgba(255,255,255,0.4);">
+        🏢 Register NGO
+    </a>
+</div>
+
+<!-- Helper text -->
+<div style="margin-top:24px;">
+    <p style="color:rgba(255,255,255,0.7); font-size:14px;">
+        🙋 Volunteers — contact your NGO manager for login credentials
+    </p>
+</div>
+    </div>
+</div>
+{% endblock %}
