@@ -1,7 +1,7 @@
 # 🤝 UnityAid: Tactical Disaster & NGO Coordination Platform
 
 ## 🌍 Overview
-UnityAid is a high-accountability, regionalized platform designed to bridge the gap between public reporters, NGOs, and volunteers during crises and disaster relief efforts. 
+UnityAid is a high-accountability, regionalized platform designed to bridge the gap between public reporters, NGOs, and volunteers during crises and disaster relief efforts.
 
 When a crisis occurs, the biggest hurdles are unverified information, lack of coordination, and delayed response times. UnityAid solves this by providing a centralized command center where public needs are instantly geo-located, NGOs are officially verified, and volunteers are tactically deployed with real-time progress monitoring.
 
