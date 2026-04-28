@@ -22,6 +22,12 @@ When a crisis occurs, the biggest hurdles are unverified information, lack of co
 
 ## 🔐 Demo Accounts
 To test the features of this platform, you can log in using the following test credentials:
-* **Super Admin:** *(Add your super admin username/password here)*
-* **NGO Manager:** *(Add your manager username/password here)*
-* **Volunteer:** *(Add your volunteer username/password here)*
+* **Super Admin:**
+username: admin
+password: dharsh2006kd
+* **NGO Manager:** 
+username: manager_kangayam
+password: manager@123
+* **Volunteer:**
+username: Bhuvana
+password: bhuvana
